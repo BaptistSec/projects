@@ -1,1 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cybersecurity Portfolio</title>
 
+    <!-- Windows 95 Fonts (Arial for the base font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Arial&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #C3C7CB;
+            color: black;
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+        }
+
+        header {
+            background-color: #0078d7;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #dcdcdc;
+        }
+
+        header h1 {
+            margin-bottom: 5px;
+            font-size: 2rem;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 1rem;
+        }
+
+        section {
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            background-color: #e0e0e0;
+            border: 2px solid #000000;
+            box-shadow: 4px 4px 0 #808080;
+            position: relative;
+        }
+
+        h2 {
+            color: #000080;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        p {
+            line-height: 1.5;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .drop-down-button {
+            background-color: #0078d7;
+            color: black;
+            border: 2px solid #000000;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            width: 150px;
+            margin-top: 10px;
+            box-shadow: 2px 2px 0 #808080;
+            transition: background-color 0.3s ease;
+        }
+
+        .drop-down-button:hover {
+            background-color: #dcdcdc;
+        }
+
+        .drop-down-content {
+            display: none;
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            border: 2px solid #000000;
+            box-shadow: 2px 2px 0 #808080;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+
+        .drop-down-content.show {
+            display: block;
+        }
+
+        .code-snippet {
+            background-color: #ffffff;
+            color: black;
+            border: 2px solid #000000;
+            padding: 10px;
+            font-family: monospace;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .github-link {
+            display: inline-block;
+            background-color: #0078d7;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: 2px solid #000000;
+            margin-top: 15px;
+            box-shadow: 2px 2px 0 #808080;
+            transition: background-color 0.3s ease;
+        }
+
+        .github-link:hover {
+            background-color: #005fa3;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #0078d7;
+            color: white;
+            border-top: 2px solid #000000;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Scroll-to-top button */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #e0e0e0;
+            color: black;
+            border: 2px solid #000000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            text-align: center;
+            line-height: 50px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0 #808080;
+            display: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .scroll-to-top:hover {
+            background-color: #dcdcdc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            section {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .drop-down-button {
+                font-size: 12px;
+                width: 100%;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Cybersecurity Portfolio</h1>
+    <p></p>
+</header>
+
+<section>
+    <h2>Nova Key Holder (2021)</h2>
+    <p><strong>Brief Description:</strong> The Nova Key Holder is a Python tool I developed to manage key presses during gaming. Lightweight, effective, and easy to use for all users—compiled into a Windows executable for maximum accessibility.</p>
+
+    <!-- Drop-down button -->
+    <button class="drop-down-button" onclick="toggleDetails(this)">Show More Details</button>
+
+    <!-- Drop-down content for full details -->
+    <div id="fullDetails" class="drop-down-content">
+        <h3>Screenshot of Nova Key Holder:</h3>
+        <img src="images/nova-key-holder-screenshot.png" alt="Nova Key Holder GUI">
+
+        <!-- Drop-down button for full code -->
+        <button class="drop-down-button" onclick="toggleCode(this)">Show Full Code</button>
+
+        <!-- Drop-down content for full code -->
+        <div id="fullCode" class="drop-down-content">
+            <div class="code-snippet">
+                <pre>
+# Placeholder for full code
+# Full code will be displayed here in the future.
+                </pre>
+            </div>
+        </div>
+
+        <a href="https://github.com/yourusername/NovaKeyHolder" class="github-link" target="_blank">View Full Project on GitHub</a>
+    </div>
+</section>
+
+<!-- Scroll to Top Button -->
+<button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()">↑</button>
+
+<footer>
+</footer>
+
+<script>
+    // Toggle function to show/hide project details and change button text
+    function toggleDetails(button) {
+        var details = button.nextElementSibling;
+        if (details.classList.contains("show")) {
+            details.classList.remove("show");
+            button.innerHTML = "Show More Details";
+        } else {
+            details.classList.add("show");
+            button.innerHTML = "Hide Details";
+        }
+    }
+
+    // Toggle function to show/hide full code and change button text
+    function toggleCode(button) {
+        var code = button.nextElementSibling;
+        if (code.classList.contains("show")) {
+            code.classList.remove("show");
+            button.innerHTML = "Show Full Code";
+        } else {
+            code.classList.add("show");
+            button.innerHTML = "Hide Code";
+        }
+    }
+
+    // Scroll-to-top functionality
+    window.onscroll = function() {
+        var scrollBtn = document.getElementById("scrollToTop");
+        if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+            scrollBtn.style.display = "block";
+        } else {
+            scrollBtn.style.display = "none";
+        }
+    };
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
