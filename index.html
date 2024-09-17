@@ -206,8 +206,215 @@
         <div id="fullCode" class="drop-down-content">
             <div class="code-snippet">
                 <pre>
-# Placeholder for full code
-# Full code will be displayed here in the future.
+#include <gtk/gtk.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <regex.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <time.h>
+#include <openssl/md5.h>
+#include <openssl/evp.h> 
+#include <openssl/aes.h> 
+
+#define MaxScore 100
+#define MaxSyscalls 50
+
+typedef struct {
+    const char *SyscallName;
+    const char *MitreTechnique;
+    int RiskScore;
+    int Frequency;
+    const char *Explanation;
+} SyscallEntry;
+
+char *ReadFileContent(const char *Filename);
+void SendReportUsingSCP(const char *ReportFilename);
+
+// Add more system calls with corresponding techniques
+SyscallEntry SyscallTable[] = {
+        {"open", "T1005 File and Directory Discovery", 5, 0, "Opening files could be used to find sensitive information."},
+        {"read", "T1059 Command-Line Interface", 5, 0, "Reading files or inputs can retrieve sensitive data."},
+        {"write", "T1041 Exfiltration Over C2 Channel", 10, 0, "Writing data could be used for exfiltration."},
+        {"close", "T1105 Ingress Tool Transfer", 5, 0, "Closing files after writing might signal data exfiltration."},
+        {"execve", "T1059 Command-Line Interface", 20, 0, "Execve allows executing processes, commonly used by malware."},
+        {"connect", "T1071 Application Layer Protocol", 20, 0, "Connect can communicate with external servers (C2)."},
+        {"sendto", "T1071 Application Layer Protocol", 15, 0, "Sending data over a network could indicate data exfiltration."},
+        {"recvfrom", "T1071 Application Layer Protocol", 15, 0, "Receiving data could indicate communication with malicious servers."},
+        {"fork", "T1105 Ingress Tool Transfer", 15, 0, "Forking can create new processes to evade detection."},
+        {"clone", "T1105 Ingress Tool Transfer", 15, 0, "Cloning processes is often used by malware for stealth."},
+        {"unlink", "T1070 Indicator Removal on Host", 20, 0, "Unlink (deleting files) removes evidence of malicious activity."},
+        {"chmod", "T1078 Valid Accounts", 10, 0, "Changing permissions could help escalate privileges."},
+        {"mmap", "T1055 Process Injection", 25, 0, "Mmap is used for code injection or exploitation."},
+        {"mprotect", "T1055 Process Injection", 25, 0, "Mprotect can modify memory protections for executing malicious code."},
+        {"ptrace", "T1055 Process Injection", 30, 0, "Ptrace is used for injecting code into processes."},
+        {"chown", "T1078 Valid Accounts", 10, 0, "Changing file ownership could be used to gain access."}
+};
+
+#define SyscallTableSize (sizeof(SyscallTable) / sizeof(SyscallEntry))
+
+GtkWidget *RiskScoreLabel;
+int TotalRiskScore = 0;
+
+void ResetSyscallFrequency() {
+    for (int i = 0; i < SyscallTableSize; i++) {
+        SyscallTable[i].Frequency = 0;
+    }
+}
+
+void ExplainRiskScore(FILE *Report) {
+    fprintf(Report, "\nDetailed Risk Explanation:\n");
+    for (int i = 0; i < SyscallTableSize; i++) {
+        if (SyscallTable[i].Frequency > 0) {
+            fprintf(Report, "- Syscall: %s (Detected %d times)\n", SyscallTable[i].SyscallName, SyscallTable[i].Frequency);
+            fprintf(Report, "  Technique: %s\n", SyscallTable[i].MitreTechnique);
+            fprintf(Report, "  Explanation: %s\n", SyscallTable[i].Explanation);
+            fprintf(Report, "  Contributed Risk Score: %d\n\n", SyscallTable[i].RiskScore);
+        }
+    }
+}
+
+// Hashing function to identify known malware signatures
+void HashFileContent(const char *Content, unsigned char *Hash) {
+    MD5((unsigned char *)Content, strlen(Content), Hash);
+}
+
+void CheckFileSignature(const char *Filename) {
+    char *Content = ReadFileContent(Filename);
+    if (Content != NULL) {
+        unsigned char Hash[MD5_DIGEST_LENGTH];
+        HashFileContent(Content, Hash);
+
+        // Check against a list of known malware hashes
+        const unsigned char KnownMalwareHash[MD5_DIGEST_LENGTH] = {/* known malware hash bytes */};
+
+        if (memcmp(Hash, KnownMalwareHash, MD5_DIGEST_LENGTH) == 0) {
+            printf("Known malware detected by hash in file: %s\n", Filename);
+            TotalRiskScore += 100;
+        }
+        free(Content);
+    }
+}
+
+// Heuristic analysis for detecting suspicious patterns
+void HeuristicAnalysis(const char *Code) {
+    if (strstr(Code, "execve") && strstr(Code, "fork")) {
+        printf("Suspicious behaviour detected: Execve followed by fork.\n");
+        TotalRiskScore += 50;
+    }
+}
+
+// Entropy-based detection to find compressed or encrypted sections
+double CalculateEntropy(const char *Content) {
+    int ByteFrequencies[256] = {0};
+    double Entropy = 0.0;
+    size_t Length = strlen(Content);
+
+    for (size_t i = 0; i < Length; i++) {
+        ByteFrequencies[(unsigned char)Content[i]]++;
+    }
+
+    for (int i = 0; i < 256; i++) {
+        if (ByteFrequencies[i] > 0) {
+            double Probability = (double)ByteFrequencies[i] / Length;
+            Entropy -= Probability * log2(Probability);
+        }
+    }
+    return Entropy;
+}
+
+void DetectPackedOrEncryptedSections(const char *Content) {
+    double Entropy = CalculateEntropy(Content);
+    if (Entropy > 7.5) {
+        printf("High entropy detected: Potential packed or encrypted section.\n");
+        TotalRiskScore += 40;
+    }
+}
+
+// Improved scan function to detect shellcode or obfuscated malware patterns
+void ScanForMaliciousPatterns(const char *Code) {
+    regex_t Regex;
+    int Ret;
+
+    const char *NopSledPattern = "(\\x90){10,}";
+    Ret = regcomp(&Regex, NopSledPattern, REG_EXTENDED);
+    if (Ret) {
+        fprintf(stderr, "Could not compile regex\n");
+        return;
+    }
+
+    Ret = regexec(&Regex, Code, 0, NULL, 0);
+    if (!Ret) {
+        printf("Potential shellcode detected: NOP sled found.\n");
+        TotalRiskScore += 30;
+    }
+
+    regfree(&Regex);
+}
+
+void AnalyseFile(const char *Filename, FILE *Report) {
+    printf("Analysing file: %s\n", Filename);
+
+    char *Code = ReadFileContent(Filename);
+    if (Code != NULL) {
+        ResetSyscallFrequency();
+        int RiskScore = CalculateRiskScore(Code);
+        ScanForMaliciousPatterns(Code);
+        HeuristicAnalysis(Code);
+        DetectPackedOrEncryptedSections(Code);
+        CheckFileSignature(Filename);
+
+        fprintf(Report, "\nAnalysing file: %s\n", Filename);
+        fprintf(Report, "Total Risk Score: %d/100\n", RiskScore);
+
+        ExplainRiskScore(Report);
+        free(Code);
+    }
+}
+
+// Main function to handle file analysis and risk report generation
+void GenerateReportForMultipleFiles(GSList *Filenames) {
+    time_t Now = time(NULL);
+    struct tm *TimeInfo = localtime(&Now);
+    char Timestamp[32];
+    strftime(Timestamp, sizeof(Timestamp), "%H%M%d%m%Y", TimeInfo);
+
+    char ReportFilename[256];
+    snprintf(ReportFilename, sizeof(ReportFilename), "analysis_report_%s.txt", Timestamp);
+
+    FILE *Report = fopen(ReportFilename, "w");
+    if (!Report) {
+        printf("Failed to create report file.\n");
+        return;
+    }
+
+    for (GSList *Iterator = Filenames; Iterator != NULL; Iterator = Iterator->next) {
+        AnalyseFile((char *)Iterator->data, Report);
+    }
+
+    fclose(Report);
+    printf("Report generated: %s\n", ReportFilename);
+
+    SendReportUsingSCP(ReportFilename);
+}
+
+// Rest of the functions (e.g. for GUI handling) remain unchanged...
+
+int main(int argc, char **argv) {
+    GtkApplication *App;
+    int Status;
+
+    App = gtk_application_new("org.gtk.mitre-sysmon", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect(App, "activate", G_CALLBACK(Activate), NULL);
+    Status = g_application_run(G_APPLICATION(App), argc, argv);
+    g_object_unref(App);
+
+    return Status;
+}
+
                 </pre>
             </div>
         </div>
